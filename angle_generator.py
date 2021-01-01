@@ -1,88 +1,101 @@
+import math
 
-def z_rotation_generator(xchange, ychange):
+def angle_generator(duration, actorlist):
+    for i in range(1, duration + 1):
+        print(f"Frame - {i} of {duration}")
+        for Actor in actorlist:
+
+            rotationchanges = generate_angles(Actor.vectors, Actor.angles, i)
+
+            Actor.angles.append([rotationchanges[0], 0, Actor.angles[i - 1][2] + rotationchanges[2]])
+
+    return actorlist
+
+def generate_angles(vectors, angles, i):
+    xchange = vectors[i][0] - vectors[i - 1][0]
+    ychange = vectors[i][1] - vectors[i - 1][1]
+    zchange = vectors[i][2] - vectors[i - 1][2]
+    rotationchanges = [0, 0, 0]
+    #generate z angle
+    current_angle = angles[i - 1][2]
+    zrotationchange = generate_rotationchange(current_angle, xchange, ychange, i, angles)
+    rotationchanges[2] = zrotationchange
+
+    #generate x angle
+    xrotationchange = generate_xrotationchange(zchange, math.sqrt(((abs(xchange))**2) + ((abs(ychange))**2)))
+    rotationchanges[0] = xrotationchange
+
+    return rotationchanges
 
 
-    #print(f"Stage {i}")
-    print(f"xchange = {xchange}")
-    print(f"ychange = {ychange}")
-    #print(f"zchange = {zchange}")
+def generate_rotationchange(current_angle, xchange, ychange, i, angles):
+    # Calculate necessary angle for movement
+    z_angle = target_angle_generator(xchange, ychange, i, angles)
+    # simplify current angle to 0-360deg range
+    current_angle_simplified = (current_angle % 360)
+    rotationchange = z_angle - current_angle_simplified
 
-    rotations = 0
+    if rotationchange >= 180:
+        rotationchange = current_angle_simplified + (360 - z_angle)
+        rotationchange = -rotationchange
 
-    #print(f"Rotations = {rotations}")
+    elif rotationchange < -180:
+        rotationchange = z_angle + (360 - current_angle_simplified)
 
+    return rotationchange
+
+
+def target_angle_generator(xchange, ychange, i, angles):
     if xchange > 0 and ychange > 0:
+        #if both are moving positive
         if xchange > ychange:
-
-            print(f"Both positive 1 - {(ychange / xchange)}")
-            print(f"Angle = {(90+abs((45 * (ychange / xchange))))+rotations}")
-            angle = (90+ abs((45 * (ychange / xchange))))+rotations
+            angle = (90+ abs((45 * (ychange / xchange))))
 
         else:
-
-            print(f"Both positive 2 - {(xchange / ychange)}")
-            print(f"Angle = {(180 - abs((45 * (xchange / ychange)))+rotations)}")
-            angle = (180 - abs((45 * (xchange / ychange)))+rotations)
+            angle = (180 - abs((45 * (xchange / ychange))))
 
     elif xchange < 0 and ychange < 0:
 
         if abs(xchange) > abs(ychange):
-            print(f"Both negative 1 - {(ychange / xchange)}")
-            print(f"Angle = {(270+abs((45 * (ychange / xchange))))+rotations}")
-            angle = (270+ abs((45 * (ychange / xchange))))+rotations
+            angle = (270 + abs((45 * (ychange / xchange))))
 
         else:
-            print(f"Both negative 2 - {(xchange / ychange)}")
-            print(f"Angle = {(360 - abs((45 * (xchange / ychange)))+rotations)}")
-            angle = (360 - abs((45 * (xchange / ychange)))+rotations)
+            angle = (360 - abs((45 * (xchange / ychange))))
 
     elif xchange > 0 and ychange < 0:
         if abs(xchange) > abs(ychange):
-            print(f"X Positive, Y negative, x larger - {ychange / xchange}")
-            print(f"Angle = {(90 - abs((45 * (ychange / xchange)))+rotations)}")
-            angle = (90 - abs((45 * (ychange / xchange)))+rotations)
+            angle = (90 - abs((45 * (ychange / xchange))))
 
         else:
-            print(f"X Positive, Y negative, y larger - {xchange / ychange}")
-            print(f"Angle = {(abs((45 * (xchange / ychange)))+rotations)}")
-            angle = (abs((45 * (xchange / ychange)))+rotations)
+            angle = (abs((45 * (xchange / ychange))))
 
     elif ychange > 0 and xchange < 0:
         if abs(xchange) > abs(ychange):
-            print(f"Y Positive, X negative, x larger - {ychange / xchange}")
-            print(f"Angle = {(270 - abs((45 * (ychange / xchange)))+rotations)}")
-            angle = (270 - abs((45 * (ychange / xchange)))+rotations)
+            angle = (270 - abs((45 * (ychange / xchange))))
 
         else:
-            print(f"Y Positive, X negative, y larger - {xchange / ychange}")
-            print(f"Angle = {(180 + abs((45 * (xchange / ychange))) + rotations)}")
-            angle = (180 + abs((45 * (xchange / ychange))) + rotations)
+            angle = (180 + abs((45 * (xchange / ychange))))
 
     elif xchange == 0 and ychange != 0:
-        print(f"xchange zero - {1}")
         if ychange > 0:
-            print(f"Angle = 180")
-            angle = rotations + 180
+            angle = 180
         else:
-            print(f"Angle = 0")
-            angle = rotations + 0
-
+            angle = 0
 
     elif ychange == 0 and xchange != 0:
-        print(f"ychange zero - {1}")
         if xchange > 0:
-            print(f"Angle = 90")
-            angle = rotations + 90
+            angle = 90
         else:
-            print(f"Angle = 270")
-            angle = rotations + 270
+            angle = 270
 
     else:
-        print(f"Both zero - {0}")
-        #print(f"i = {i}")
-        angle = angles[i-1][2]
-
-    print(f"Angle = {angle}")
+        angle = angles[i-1][2]%360
     return(angle)
-    #rotations = angles[i][2]//360
-    #rotations = rotations * 360
+
+
+def generate_xrotationchange(zchange, hypo):
+    angle = math.atan(zchange/hypo)
+    angle = angle * (180 / math.pi)
+    angle = -angle
+
+    return angle
